@@ -146,19 +146,6 @@ One supplied load-test run used 10 connections and produced the following result
 
 The very high rejection count is expected for a limiter configured with a capacity of 10 and a refill rate of 2 tokens per second when many requests target the same client identity. The result demonstrates that rejected requests are handled quickly, but it is not a measure of unrestricted application throughput. Benchmark numbers will vary with Redis placement, CPU, network latency, client identity distribution, and load-generator settings.
 
-## Applications
-
-This pattern is useful for protecting:
-
-- Public APIs from accidental or abusive request bursts
-- Authentication and password-reset endpoints from brute-force attempts
-- Expensive search, report, or export operations
-- Shared backend services in a horizontally scaled deployment
-- Per-tenant or per-user quotas in SaaS applications
-- Infrastructure endpoints such as webhooks and callback receivers
-
-The token bucket is a good fit when short bursts should be allowed while maintaining a long-term request rate.
-
 ## Configuration
 
 The limiter is configured in `src/index.js`:
@@ -174,16 +161,15 @@ const limiter = new TokenBucketLimiter(redis, {
 
 For production use, consider making the Redis URL and limiter settings environment variables, selecting an identity appropriate to the deployment, and configuring Express proxy trust correctly when the service runs behind a reverse proxy. Otherwise, multiple users may appear to share a proxy IP, or client IPs may not be identified as intended.
 
-## Limitations and Next Steps
+## Applications
 
-- There are currently no automated tests in the repository.
-- The example uses one global limiter configuration for every route.
-- Client identity is IP-based; authenticated user IDs or API keys may be better for many applications.
-- Redis availability is required for request decisions, so production deployments should plan Redis high availability and failure behavior.
-- The sample server does not include a dedicated error handler or graceful shutdown sequence.
+This pattern is useful for protecting:
 
-Natural extensions include route-specific policies, weighted request costs, API-key-based identity, environment-based configuration, automated tests for refill and concurrency behavior, and metrics for allowed/rejected requests.
+- Public APIs from accidental or abusive request bursts
+- Authentication and password-reset endpoints from brute-force attempts
+- Expensive search, report, or export operations
+- Shared backend services in a horizontally scaled deployment
+- Per-tenant or per-user quotas in SaaS applications
+- Infrastructure endpoints such as webhooks and callback receivers
 
-## License
-
-This project currently uses the ISC license declared in `package.json`.
+The token bucket is a good fit when short bursts should be allowed while maintaining a long-term request rate.
